@@ -3,7 +3,9 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"infotecs_trainee_task/internal/entity"
 	"infotecs_trainee_task/internal/repo"
 	"log/slog"
@@ -39,14 +41,39 @@ func (s *WalletService) CreateWallet(ctx context.Context) (uuid.UUID, error) {
 	return walletUUID, nil
 }
 
+// MakeTransaction create function using db transactions to change balances
 func (s *WalletService) MakeTransaction(ctx context.Context, sender, receiver uuid.UUID, amount float64) error {
+
+	senderWallet, err := s.walletRepo.GetWalletStateById(ctx, sender)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrCannotGetWallet
+		}
+		slog.Error("WalletService.MakeTransaction", err)
+		return ErrCannotCreateTransaction
+	}
+
+	// change placeholder with receiverWallet
+	_, err = s.walletRepo.GetWalletStateById(ctx, receiver)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrCannotGetWallet
+		}
+		slog.Error("WalletService.MakeTransaction", err)
+		return ErrCannotCreateTransaction
+	}
+
+	if senderWallet.Balance-amount < 0 {
+		return fmt.Errorf("not enought money to send: %d", senderWallet.Balance)
+	}
+
 	transaction := entity.Transaction{
 		Sender:   sender,
 		Receiver: receiver,
 		Amount:   amount,
 	}
 
-	err := s.transactionRepo.CreateTransaction(ctx, transaction)
+	err = s.transactionRepo.CreateTransaction(ctx, transaction)
 	if err != nil {
 		if errors.Is(err, repo.ErrAlreadyExist) {
 			return ErrTransactionAlreadyExists

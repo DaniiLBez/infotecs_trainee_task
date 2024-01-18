@@ -44,6 +44,7 @@ func (r *UserRepo) CreateUser(ctx context.Context, user entity.User) (uuid.UUID,
 	return userUUID, nil
 }
 
+// GetUserById To delete may be unused
 func (r *UserRepo) GetUserById(ctx context.Context, uuid uuid.UUID) (entity.User, error) {
 	sql, args, _ := r.Builder.
 		Select("uuid", "username", "password", "created_at").
@@ -64,6 +65,7 @@ func (r *UserRepo) GetUserById(ctx context.Context, uuid uuid.UUID) (entity.User
 	return user, nil
 }
 
+// GetUserByUsername To delete may be unused
 func (r *UserRepo) GetUserByUsername(ctx context.Context, username string) (entity.User, error) {
 	sql, args, _ := r.Builder.
 		Select("uuid", "username", "password", "created_at").

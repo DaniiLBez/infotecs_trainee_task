@@ -15,6 +15,7 @@ var (
 
 	ErrWalletAlreadyExists = errors.New("wallet already exist")
 	ErrCannotCreateWallet  = errors.New("can not create wallet")
+	ErrCannotGetWallet     = errors.New("can not get wallet")
 
 	ErrTransactionAlreadyExists = errors.New("transaction already exist")
 	ErrCannotCreateTransaction  = errors.New("can not create transaction")

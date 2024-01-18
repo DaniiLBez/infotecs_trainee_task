@@ -17,7 +17,7 @@ type User interface {
 
 type Wallet interface {
 	CreateWallet(ctx context.Context, wallet entity.Wallet) (uuid.UUID, error)
-	ChangeBalance(ctx context.Context, amount float64) error
+	ChangeBalance(ctx context.Context, wallet entity.Wallet, amount float64) error
 	GetWalletStateById(ctx context.Context, uuid uuid.UUID) (entity.Wallet, error)
 }
 
