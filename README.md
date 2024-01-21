@@ -15,3 +15,6 @@ make compose-up
 Database structure described in file ```./migration/20240120_trainee.app.sql```
 
 Requests to test api is located in ```./test.http```
+
+Git link to solution: 
+```https://github.com/DaniiLBez/infotecs_trainee_task```
