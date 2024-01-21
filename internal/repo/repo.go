@@ -17,8 +17,8 @@ type User interface {
 
 type Wallet interface {
 	CreateWallet(ctx context.Context, wallet entity.Wallet) (uuid.UUID, error)
-	ChangeBalance(ctx context.Context, wallet entity.Wallet, amount float64) error
 	GetWalletStateById(ctx context.Context, uuid uuid.UUID) (entity.Wallet, error)
+	CashTransfer(ctx context.Context, sender, receiver entity.Wallet, amount float64) error
 }
 
 type Transaction interface {
@@ -35,7 +35,7 @@ type Repositories struct {
 func NewRepositories(pg *postgres.Postgres) *Repositories {
 	return &Repositories{
 		User:        pgdb.NewUserRepo(pg),
-		Wallet:      nil,
-		Transaction: nil,
+		Wallet:      pgdb.NewWalletRepo(pg),
+		Transaction: pgdb.NewTransactionRepo(pg),
 	}
 }

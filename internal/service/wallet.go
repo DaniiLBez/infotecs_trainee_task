@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"infotecs_trainee_task/internal/entity"
 	"infotecs_trainee_task/internal/repo"
+	"infotecs_trainee_task/internal/repo/repoerrors"
 	"log/slog"
 )
 
@@ -31,7 +32,7 @@ func (s *WalletService) CreateWallet(ctx context.Context) (uuid.UUID, error) {
 
 	walletUUID, err := s.walletRepo.CreateWallet(ctx, wallet)
 	if err != nil {
-		if errors.Is(err, repo.ErrAlreadyExist) {
+		if errors.Is(err, repoerrors.ErrAlreadyExist) {
 			return uuid.Nil, ErrWalletAlreadyExists
 		}
 		slog.Error("WalletService.CreateWallet", err)
@@ -41,22 +42,20 @@ func (s *WalletService) CreateWallet(ctx context.Context) (uuid.UUID, error) {
 	return walletUUID, nil
 }
 
-// MakeTransaction create function using db transactions to change balances
 func (s *WalletService) MakeTransaction(ctx context.Context, sender, receiver uuid.UUID, amount float64) error {
 
 	senderWallet, err := s.walletRepo.GetWalletStateById(ctx, sender)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, repoerrors.ErrNotFound) {
 			return ErrCannotGetWallet
 		}
 		slog.Error("WalletService.MakeTransaction", err)
 		return ErrCannotCreateTransaction
 	}
 
-	// change placeholder with receiverWallet
-	_, err = s.walletRepo.GetWalletStateById(ctx, receiver)
+	receiverWallet, err := s.walletRepo.GetWalletStateById(ctx, receiver)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, repoerrors.ErrNotFound) {
 			return ErrCannotGetWallet
 		}
 		slog.Error("WalletService.MakeTransaction", err)
@@ -64,7 +63,14 @@ func (s *WalletService) MakeTransaction(ctx context.Context, sender, receiver uu
 	}
 
 	if senderWallet.Balance-amount < 0 {
-		return fmt.Errorf("not enought money to send: %d", senderWallet.Balance)
+		return fmt.Errorf("not enought money to send: %f", senderWallet.Balance)
+	}
+
+	err = s.walletRepo.CashTransfer(ctx, senderWallet, receiverWallet, amount)
+	if err != nil {
+		if errors.Is(err, pgx.ErrTxCommitRollback) {
+			return fmt.Errorf("transaction rollbacked: %v", err)
+		}
 	}
 
 	transaction := entity.Transaction{
@@ -75,7 +81,7 @@ func (s *WalletService) MakeTransaction(ctx context.Context, sender, receiver uu
 
 	err = s.transactionRepo.CreateTransaction(ctx, transaction)
 	if err != nil {
-		if errors.Is(err, repo.ErrAlreadyExist) {
+		if errors.Is(err, repoerrors.ErrAlreadyExist) {
 			return ErrTransactionAlreadyExists
 		}
 		slog.Error("WalletService.MakeTransaction", err)
@@ -90,5 +96,11 @@ func (s *WalletService) GetWalletState(ctx context.Context, walletUUID uuid.UUID
 }
 
 func (s *WalletService) GetTransactionsHistory(ctx context.Context, walletUUID uuid.UUID) ([]entity.Transaction, error) {
+	_, err := s.walletRepo.GetWalletStateById(ctx, walletUUID)
+	if err != nil {
+		if errors.Is(err, repoerrors.ErrNotFound) {
+			return []entity.Transaction{}, ErrCannotGetWallet
+		}
+	}
 	return s.transactionRepo.GetWalletHistory(ctx, walletUUID)
 }

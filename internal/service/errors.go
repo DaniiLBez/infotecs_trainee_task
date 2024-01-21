@@ -19,4 +19,5 @@ var (
 
 	ErrTransactionAlreadyExists = errors.New("transaction already exist")
 	ErrCannotCreateTransaction  = errors.New("can not create transaction")
+	ErrCannotGetTransaction     = errors.New("can not get slug")
 )

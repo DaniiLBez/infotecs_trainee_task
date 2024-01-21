@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"infotecs_trainee_task/internal/entity"
 	"infotecs_trainee_task/internal/repo"
+	"infotecs_trainee_task/internal/repo/repoerrors"
 	"infotecs_trainee_task/pkg/hasher"
 	"log/slog"
 	"time"
@@ -39,19 +40,16 @@ func NewAuthService(
 	}
 }
 
-func (s *AuthService) CreateUser(ctx context.Context, input struct {
-	username string
-	password string
-}) (uuid.UUID, error) {
+func (s *AuthService) CreateUser(ctx context.Context, input InputData) (uuid.UUID, error) {
 	user := entity.User{
-		Username: input.username,
-		Password: s.passwordHasher.Hash(input.password),
+		Username: input.Username,
+		Password: s.passwordHasher.Hash(input.Password),
 	}
 
 	userUUID, err := s.userRepo.CreateUser(ctx, user)
 
 	if err != nil {
-		if errors.Is(err, repo.ErrAlreadyExist) {
+		if errors.Is(err, repoerrors.ErrAlreadyExist) {
 			return uuid.Nil, ErrUserAlreadyExists
 		}
 		slog.Error("AuthService.CreateUser", err.Error())
@@ -61,14 +59,11 @@ func (s *AuthService) CreateUser(ctx context.Context, input struct {
 	return userUUID, nil
 }
 
-func (s *AuthService) GenerateToken(ctx context.Context, input struct {
-	username string
-	password string
-}) (string, error) {
-	user, err := s.userRepo.GetUserByUsernameAndPassword(ctx, input.username, s.passwordHasher.Hash(input.password))
+func (s *AuthService) GenerateToken(ctx context.Context, input InputData) (string, error) {
+	user, err := s.userRepo.GetUserByUsernameAndPassword(ctx, input.Username, s.passwordHasher.Hash(input.Password))
 
 	if err != nil {
-		if errors.Is(err, repo.ErrNotFound) {
+		if errors.Is(err, repoerrors.ErrNotFound) {
 			return "", ErrUserNotFound
 		}
 		slog.Error("AuthService.GenerateToken", err.Error())

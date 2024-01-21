@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 	"infotecs_trainee_task/internal/entity"
-	"infotecs_trainee_task/internal/repo"
+	"infotecs_trainee_task/internal/repo/repoerrors"
 	"infotecs_trainee_task/pkg/postgres"
 )
 
@@ -32,7 +32,7 @@ func (r *TransactionRepo) CreateTransaction(ctx context.Context, transaction ent
 		var pgErr *pgconn.PgError
 		if ok := errors.As(err, &pgErr); ok {
 			if pgErr.Code == "23505" {
-				return repo.ErrAlreadyExist
+				return repoerrors.ErrAlreadyExist
 			}
 		}
 		return fmt.Errorf("TransactionRepo.CreateTransaction - r.Pool.Exec: %v", err)
@@ -60,7 +60,7 @@ func (r *TransactionRepo) GetWalletHistory(ctx context.Context, uuid uuid.UUID) 
 	var transactions []entity.Transaction
 	for rows.Next() {
 		var transaction entity.Transaction
-		if err = rows.Scan(&transaction); err != nil {
+		if err = rows.Scan(&transaction.Sender, &transaction.Receiver, &transaction.CreatedAt, &transaction.Amount); err != nil {
 			return nil, fmt.Errorf("TransactionRepo.GetWalletHistory - rows.Scan: %v", err)
 		}
 		transactions = append(transactions, transaction)

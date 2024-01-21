@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"infotecs_trainee_task/internal/entity"
-	"infotecs_trainee_task/internal/repo"
+	"infotecs_trainee_task/internal/repo/repoerrors"
 	"infotecs_trainee_task/pkg/postgres"
 )
 
@@ -35,7 +35,7 @@ func (r *UserRepo) CreateUser(ctx context.Context, user entity.User) (uuid.UUID,
 		var pgErr *pgconn.PgError
 		if ok := errors.As(err, &pgErr); ok {
 			if pgErr.Code == "23505" {
-				return uuid.Nil, repo.ErrAlreadyExist
+				return uuid.Nil, repoerrors.ErrAlreadyExist
 			}
 		}
 		return uuid.Nil, fmt.Errorf("UserRepo.CreateUser - r.Pool.QueryRow: %v", err)
@@ -48,7 +48,7 @@ func (r *UserRepo) CreateUser(ctx context.Context, user entity.User) (uuid.UUID,
 func (r *UserRepo) GetUserById(ctx context.Context, uuid uuid.UUID) (entity.User, error) {
 	sql, args, _ := r.Builder.
 		Select("uuid", "username", "password", "created_at").
-		From("user").
+		From("users").
 		Where("uuid = ?", uuid).
 		ToSql()
 
@@ -57,7 +57,7 @@ func (r *UserRepo) GetUserById(ctx context.Context, uuid uuid.UUID) (entity.User
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return entity.User{}, repo.ErrNotFound
+			return entity.User{}, repoerrors.ErrNotFound
 		}
 		return entity.User{}, fmt.Errorf("UserRepo.GetUserById - r.Pool.QueryRow: %v", err)
 	}
@@ -69,7 +69,7 @@ func (r *UserRepo) GetUserById(ctx context.Context, uuid uuid.UUID) (entity.User
 func (r *UserRepo) GetUserByUsername(ctx context.Context, username string) (entity.User, error) {
 	sql, args, _ := r.Builder.
 		Select("uuid", "username", "password", "created_at").
-		From("user").
+		From("users").
 		Where("username = ?", username).
 		ToSql()
 
@@ -78,7 +78,7 @@ func (r *UserRepo) GetUserByUsername(ctx context.Context, username string) (enti
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return entity.User{}, repo.ErrNotFound
+			return entity.User{}, repoerrors.ErrNotFound
 		}
 		return entity.User{}, fmt.Errorf("UserRepo.GetUserByUsername - r.Pool.QueryRow: %v", err)
 	}
@@ -89,7 +89,7 @@ func (r *UserRepo) GetUserByUsername(ctx context.Context, username string) (enti
 func (r *UserRepo) GetUserByUsernameAndPassword(ctx context.Context, username, password string) (entity.User, error) {
 	sql, args, _ := r.Builder.
 		Select("uuid", "username", "password", "created_at").
-		From("user").
+		From("users").
 		Where(
 			squirrel.And{
 				squirrel.Eq{"username": username},
@@ -98,11 +98,16 @@ func (r *UserRepo) GetUserByUsernameAndPassword(ctx context.Context, username, p
 		ToSql()
 
 	var user entity.User
-	err := r.Pool.QueryRow(ctx, sql, args...).Scan(&user)
+	err := r.Pool.QueryRow(ctx, sql, args...).Scan(
+		&user.UUID,
+		&user.Username,
+		&user.Password,
+		&user.CreatedAt,
+	)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return entity.User{}, repo.ErrNotFound
+			return entity.User{}, repoerrors.ErrNotFound
 		}
 		return entity.User{}, fmt.Errorf("UserRepo.GetUserByUsername - r.Pool.QueryRow: %v", err)
 	}

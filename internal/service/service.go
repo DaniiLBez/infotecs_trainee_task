@@ -9,17 +9,14 @@ import (
 	"time"
 )
 
+type InputData struct {
+	Username string
+	Password string
+}
+
 type Auth interface {
-	CreateUser(ctx context.Context, input struct {
-		username string
-		password string
-	}) (uuid.UUID, error)
-
-	GenerateToken(ctx context.Context, input struct {
-		username string
-		password string
-	}) (string, error)
-
+	CreateUser(ctx context.Context, input InputData) (uuid.UUID, error)
+	GenerateToken(ctx context.Context, input InputData) (string, error)
 	ParseToken(string) (uuid.UUID, error)
 }
 
