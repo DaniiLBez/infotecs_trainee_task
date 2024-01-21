@@ -1,0 +1,38 @@
+POST http://localhost:8080/auth/sign-up
+Content-Type: application/json
+
+{
+  "username": "Daniil Bezzubov",
+  "password": "1234Qwerty!"
+}
+
+###
+POST http://localhost:8080/auth/sign-in
+Content-Type: application/json
+
+{
+  "username": "Daniil Bezzubov",
+  "password": "1234Qwerty!"
+}
+
+###
+POST http://localhost:8080/api/v1/wallet/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VyVVVJRCI6IjUxMjQ5NDc2LTRjYzItNGNmNi05Njg4LTAxYzRkOTZmNWY2YiJ9.YwbE1Ohfhq2zTWKUypv0R6Ru278tg1PCHEWCgO56dbY
+
+###
+POST http://localhost:8080/api/v1/wallet/a9e2b7cd-2a82-4b29-b93b-1b0e9137fc49/send
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VyVVVJRCI6IjUxMjQ5NDc2LTRjYzItNGNmNi05Njg4LTAxYzRkOTZmNWY2YiJ9.YwbE1Ohfhq2zTWKUypv0R6Ru278tg1PCHEWCgO56dbY
+Content-Type: application/json
+
+{
+  "to": "d2a57732-bb02-422f-ade2-ca438df32fec",
+  "amount": 50
+}
+
+###
+GET http://localhost:8080/api/v1/wallet/d2a57732-bb02-422f-ade2-ca438df32fec/history
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VyVVVJRCI6IjUxMjQ5NDc2LTRjYzItNGNmNi05Njg4LTAxYzRkOTZmNWY2YiJ9.YwbE1Ohfhq2zTWKUypv0R6Ru278tg1PCHEWCgO56dbY
+
+###
+GET http://localhost:8080/api/v1/wallet/d2a57732-bb02-422f-ade2-ca438df33fec
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VyVVVJRCI6IjUxMjQ5NDc2LTRjYzItNGNmNi05Njg4LTAxYzRkOTZmNWY2YiJ9.YwbE1Ohfhq2zTWKUypv0R6Ru278tg1PCHEWCgO56dbY

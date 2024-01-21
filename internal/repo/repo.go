@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/google/uuid"
 	"infotecs_trainee_task/internal/entity"
+	"infotecs_trainee_task/internal/repo/pgdb"
+	"infotecs_trainee_task/pkg/postgres"
 )
 
 type User interface {
@@ -13,6 +15,27 @@ type User interface {
 	GetUserByUsernameAndPassword(ctx context.Context, username, password string) (entity.User, error)
 }
 
+type Wallet interface {
+	CreateWallet(ctx context.Context, wallet entity.Wallet) (uuid.UUID, error)
+	GetWalletStateById(ctx context.Context, uuid uuid.UUID) (entity.Wallet, error)
+	CashTransfer(ctx context.Context, sender, receiver entity.Wallet, amount float64) error
+}
+
+type Transaction interface {
+	CreateTransaction(ctx context.Context, transaction entity.Transaction) error
+	GetWalletHistory(ctx context.Context, uuid uuid.UUID) ([]entity.Transaction, error)
+}
+
 type Repositories struct {
-	User User
+	User        User
+	Wallet      Wallet
+	Transaction Transaction
+}
+
+func NewRepositories(pg *postgres.Postgres) *Repositories {
+	return &Repositories{
+		User:        pgdb.NewUserRepo(pg),
+		Wallet:      pgdb.NewWalletRepo(pg),
+		Transaction: pgdb.NewTransactionRepo(pg),
+	}
 }

@@ -12,4 +12,12 @@ var (
 
 	ErrCannotSignToken  = errors.New("cannot sign token")
 	ErrCannotParseToken = errors.New("cannot parse token")
+
+	ErrWalletAlreadyExists = errors.New("wallet already exist")
+	ErrCannotCreateWallet  = errors.New("can not create wallet")
+	ErrCannotGetWallet     = errors.New("can not get wallet")
+
+	ErrTransactionAlreadyExists = errors.New("transaction already exist")
+	ErrCannotCreateTransaction  = errors.New("can not create transaction")
+	ErrCannotGetTransaction     = errors.New("can not get slug")
 )

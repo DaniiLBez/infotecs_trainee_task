@@ -1,7 +1,6 @@
-version: "3.8"
+version: "3.3"
 
 services:
-
   postgres:
     container_name: postgres
     image: postgres
@@ -12,7 +11,7 @@ services:
     ports:
       - "5432:5432"
     restart: unless-stopped
-
+  
   app:
     container_name: app
     build: .
@@ -23,7 +22,7 @@ services:
       - .env
     ports:
       - "${HTTP_PORT}:${HTTP_PORT}"
-    depends_on: postgres
+    depends_on: [postgres]
     restart: unless-stopped
 
 volumes:
